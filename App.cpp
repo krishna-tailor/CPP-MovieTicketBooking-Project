@@ -193,6 +193,7 @@ dayNo:
     cout << leftSide << " Movie Added Successfully " << RightSide << "\n\n";
 }
 
+
 void Movie::printDay1Movies()
 {
     cout << "\n\n";
