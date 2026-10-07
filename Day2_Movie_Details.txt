@@ -1,0 +1,9 @@
+Name => Drishyam 3
+Movie Duration => 60
+Screen No => 13
+Price Of Marvel Seat => 150
+Price Of Royal Seat => 200
+Price Of Recliner Seat => 300
+Show Starting Time => 15 : 30
+Show No => 12
+
