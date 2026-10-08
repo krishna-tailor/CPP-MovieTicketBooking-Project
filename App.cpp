@@ -38,6 +38,8 @@ void customerDashBoard();
 void adminDashboard();
 void accountValidation();
 void loadData();
+void loadMovieData();
+void loadMovieSeats();
 
 /*
 Read Data from The File As Soon As Program Starts
@@ -49,24 +51,57 @@ class Movie
 {
 private:
     string name;
-    char seats[20][20];
+    char seats[10][10];
     int duration, screenNo;        // Movie Duration will be in total minutes
     float marvel, royal, recliner; // Ticket Pricing
     int showHr, showMins;          // Show That at what time show will start
     int showNo, dayNo;
+    static int count;
+    int showTrack;
 
 public:
-    void friend loadMovieData();           // Loads The Movie Infortmation At The Starting Of The Program
-    void showMovieDetails(int choice = 0); // Made For Cusotmer To Check Movie Details;
-    void addMoive();
+    void friend loadMovieData(); // Loads The Movie Infortmation At The Starting Of The Program
+    void addMoive(int val);
+    void updateMovies();
+    int printMovie();
     void printSeats();
     void printDay1Movies();
     void printDay2Movies();
-    // void updateMovies();
+    void loadSeats(int dayNo, int showNo);
     // void deleteMovies();
 } day1[100], day2[100];
 
-void Movie::addMoive()
+int Movie::count = 0;
+
+// Load Seats In the file when the new movie enters
+void Movie::loadSeats(int dayNo, int showNo)
+{
+    ofstream oFile;
+    if (dayNo == 1)
+        oFile.open("Day1MovieSeats.txt", ios::app);
+    else
+        oFile.open("Day2MovieSeats.txt", ios::app);
+    // Loading Temp Data
+    oFile << "Show No: " << showNo << "\n";
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            if (i < 3)
+                oFile << "RE ";
+            else if (i < 6)
+                oFile << "RO ";
+
+            else
+                oFile << "MA ";
+        }
+        oFile << "\n";
+    }
+    oFile << "\n";
+    oFile.close();
+}
+
+void Movie::addMoive(int val = 0)
 {
     ofstream file;
     getchar();
@@ -188,11 +223,13 @@ dayNo:
          << "\nShow Starting Time => " << showHr << " : " << showMins
          << "\nShow No => " << showNo << "\n\n";
     file.close();
-
+    loadSeats(dayNo, showNo); // ADDS ALL NEW SEATS FOR NEW MOVIE
     system("clear");
     cout << leftSide << " Movie Added Successfully " << RightSide << "\n\n";
+    j = 0;
+    k = 0;
+    loadMovieData();
 }
-
 
 void Movie::printDay1Movies()
 {
@@ -203,6 +240,10 @@ void Movie::printDay1Movies()
     cout << "| Movie Name                               | Duration | Screen No | Starting Time     | Show No      |\n";
     cout << "+------------------------------------------+----------+-----------+-------------------+--------------+\n";
 
+    if (j == 0)
+    {
+        cout << right << setw(37) << "No Movies Present To Show\n";
+    }
     for (int m = 0; m < j; m++)
     {
         cout << "| "
@@ -236,7 +277,10 @@ void Movie::printDay2Movies()
     cout << "+------------------------------------------+----------+-----------+-------------------+--------------+\n";
     cout << "| Movie Name                               | Duration | Screen No | Starting Time     | Show No      |\n";
     cout << "+------------------------------------------+----------+-----------+-------------------+--------------+\n";
-
+    if (k == 0)
+    {
+        cout << right << setw(37) << "No Movies Present To Show\n";
+    }
     for (int m = 0; m < k; m++)
     {
         cout << "| "
@@ -248,10 +292,9 @@ void Movie::printDay2Movies()
              << " | ";
 
         // Starting Time
-        cout << right
-             << setw(2) << day2[m].showHr
+        cout << right << setw(2) << setfill('0') << day2[m].showHr
              << ":"
-             << setw(2) << setfill('0') << day2[m].showMins
+             << setw(2) << day2[m].showMins
              << setfill(' ')
              << "             | ";
 
@@ -263,85 +306,71 @@ void Movie::printDay2Movies()
     cout << "+------------------------------------------+----------+-----------+-------------------+--------------+\n";
 }
 
-void loadMovieData()
+void Movie::updateMovies()
 {
-    string line;
-    ifstream file1("Day1_Movie_Details.txt");
-    if (!file1)
+    int choice;
+enterAgain:
+    cout << "\n\n"
+         << "        +----------------------------------------+\n"
+         << "        |           UPDATE MOVIES                |\n"
+         << "        +----------------------------------------+\n\n";
+    cout << "        |  [1]  DAY 1                            |\n\n";
+    cout << "        |  [2]  DAY 2                            |\n\n";
+    cout << "        |  [3]  RETURN TO PREVIOUS MENU          |\n\n";
+    cout << "        +----------------------------------------+\n"
+         << leftSide << " Enter Your Choice => ";
+    cin >> choice;
+    if (choice > 3 || choice < 1)
     {
-        cout << leftSide << "Unable To Open File1 , Or File Does Not Exist" << RightSide << "\n"
-             << lineSeperator;
-    }
-
-    else
-    {
-        while (getline(file1, line))
-        {
-            day1[j].name = line.substr(8);
-            getline(file1, line);
-            day1[j].duration = stoi(line.substr(17));
-            getline(file1, line);
-            day1[j].screenNo = stoi(line.substr(12));
-            getline(file1, line);
-            day1[j].marvel = stof(line.substr(23));
-            getline(file1, line);
-            day1[j].royal = stof(line.substr(22));
-            getline(file1, line);
-            day1[j].recliner = stof(line.substr(25));
-            getline(file1, line);
-            day1[j].showHr = stoi(line.substr(21));
-
-            if (day1[j].showHr >= 10)
-                day1[j].showMins = stoi(line.substr(26));
-            else
-                day1[j].showMins = stoi(line.substr(25));
-            getline(file1, line);
-            day1[j].showNo = stoi(line.substr(11));
-
-            getline(file1, line);
-            j++;
-        }
-        file1.close();
-    }
-    ifstream File2("Day2_Movie_Details.txt");
-    if (!File2)
-    {
-        cout << leftSide << "Unable To Open File2 , Or File Does Not Exist" << RightSide << "\n"
-             << lineSeperator;
-    }
-
-    else
-    {
-        while (getline(File2, line))
-        {
-            day2[k].name = line.substr(8);
-            getline(File2, line);
-            day2[k].duration = stoi(line.substr(17));
-            getline(File2, line);
-            day2[k].screenNo = stoi(line.substr(12));
-            getline(File2, line);
-            day2[k].marvel = stof(line.substr(23));
-            getline(File2, line);
-            day2[k].royal = stof(line.substr(22));
-            getline(File2, line);
-            day2[k].recliner = stof(line.substr(25));
-            getline(File2, line);
-            day2[k].showHr = stoi(line.substr(21));
-
-            if (day2[k].showHr >= 10)
-                day2[k].showMins = stoi(line.substr(26));
-            else
-                day2[k].showMins = stoi(line.substr(25));
-            getline(File2, line);
-            day2[k].showNo = stoi(line.substr(11));
-            getline(File2, line);
-            k++;
-        }
-        File2.close();
+        system("clear");
+        cout << leftSide << " Invalid Choice " << RightSide;
+        goto enterAgain;
     }
 }
 
+int Movie::printMovie()
+{
+    int choice, choice1;
+    Movie m;
+    cout << "\n";
+    cout << "============================================================\n";
+    cout << "                    MOVIE SHOWS\n";
+    cout << "============================================================\n\n";
+    cout << "        +------------------------------------------+\n";
+    cout << "        |              MOVIE OPTIONS               |\n";
+    cout << "        +------------------------------------------+\n\n";
+    cout << "        |  [1]  Show Movies Of Current Day         |\n\n";
+    cout << "        |  [2]  Show Movies Of Tomorrow            |\n\n";
+    cout << "        |  [3]  Show Movies Of Both Days           |\n\n";
+    cout << "        +------------------------------------------+\n\n";
+    cout << "        Enter Your Choice => ";
+    cin >> choice1;
+    if (choice1 == 1)
+    {
+        system("clear");
+        m.printDay1Movies();
+    }
+    else if (choice1 == 2)
+    {
+        system("clear");
+        m.printDay2Movies();
+    }
+    else if (choice1 == 3)
+    {
+        system("clear");
+        m.printDay1Movies();
+        m.printDay2Movies();
+    }
+    else
+    {
+        system("clear");
+        cout << "\nInvalid Choice! Please try again.\n";
+    }
+    return 0;
+}
+
 // Admin Class
+
 class Admin
 {
 public:
@@ -420,41 +449,12 @@ void Admin::movieOperatons()
 
         case 2:
             system("clear");
-            cout << "\n";
-            cout << "============================================================\n";
-            cout << "                    MOVIE SHOWS\n";
-            cout << "============================================================\n\n";
+            m.printMovie();
+            break;
 
-            cout << "        +------------------------------------------+\n";
-            cout << "        |              MOVIE OPTIONS               |\n";
-            cout << "        +------------------------------------------+\n\n";
-            cout << "        |  [1]  Show Movies Of Current Day         |\n\n";
-            cout << "        |  [2]  Show Movies Of Tomorrow            |\n\n";
-            cout << "        |  [3]  Show Movies Of Both Days           |\n\n";
-            cout << "        +------------------------------------------+\n\n";
-            cout << "        Enter Your Choice => ";
-            cin >> choice1;
-            if (choice1 == 1)
-            {
-                system("clear");
-                m.printDay1Movies();
-            }
-            else if (choice1 == 2)
-            {
-                system("clear");
-                m.printDay2Movies();
-            }
-            else if (choice1 == 3)
-            {
-                system("clear");
-                m.printDay1Movies();
-                m.printDay2Movies();
-            }
-            else
-            {
-                system("clear");
-                cout << "\nInvalid Choice! Please try again.\n";
-            }
+        case 3:
+            system("clear");
+            m.updateMovies();
             break;
 
         case 5:
@@ -486,8 +486,7 @@ public:
     friend void loadData();
     friend void accountValidation();
 
-    void checkMovies();
-    void bookTIckets();
+    // void bookTickets();
     void viewBookedTickets();
     void updateInformation();
     void cancelTickets();
@@ -592,6 +591,7 @@ int main()
 
     loadData();
     loadMovieData();
+    loadMovieSeats();
     do
     {
         // Uer Interface Part Starts
@@ -651,47 +651,54 @@ void loadData()
 {
     string line;
     ifstream inputFile("Customer_Account_Information.txt");
-    while (getline(inputFile, line))
+    if (!inputFile)
     {
-        c1[i].name = line.substr(8);
-        getline(inputFile, line);
-        c1[i].age = stoi(line.substr(7));
-        getline(inputFile, line);
-        c1[i].mobileNo = stoll(line.substr(13));
-        getline(inputFile, line);
-        c1[i].password = line.substr(12);
-        getline(inputFile, line);
-        c1[i].customerId = stoi(line.substr(15));
-        getline(inputFile, line);
-
-        i++;
+        system("clear");
+        cout << leftSide << "Unable To Open File / Or File Does Not Exist " << RightSide;
     }
+    else
+    {
 
-    // for (int k = 0; k < i; k++)
-    // {
-    //     cout << c1[k].name << endl;
-    //     cout << c1[k].age << endl;
-    //     cout << c1[k].mobileNo << endl;
-    //     cout << c1[k].password << endl;
-    //     cout << c1[k].customerId << endl
-    //          << endl;
-    // }
+        while (getline(inputFile, line))
+        {
+            c1[i].name = line.substr(7);
+            getline(inputFile, line);
+            c1[i].age = stoi(line.substr(6));
+            getline(inputFile, line);
+            c1[i].mobileNo = stoll(line.substr(13));
+            getline(inputFile, line);
+            c1[i].password = line.substr(12);
+            getline(inputFile, line);
+            c1[i].customerId = stoi(line.substr(15));
+            getline(inputFile, line);
+
+            i++;
+        }
+
+        // for (int k = 0; k < i; k++)
+        // {
+        //     cout << c1[k].name << endl;
+        //     cout << c1[k].age << endl;
+        //     cout << c1[k].mobileNo << endl;
+        //     cout << c1[k].password << endl;
+        //     cout << c1[k].customerId << endl
+        //          << endl;
+        // }
+    }
 }
 
 void customerDashBoard()
 {
     int choice;
     accountValidation();
+    Movie m;
     system("clear");
 
     // User Interface starts
 
     do
     {
-        /* code */
-
         cout << "\n";
-
         cout << mainHeading << mainHeading << "\n";
         cout << "||" << setw(58) << right << "CUSTOMER DASHBOARD" << "                                          ||\n";
         cout << mainHeading << mainHeading;
@@ -722,7 +729,12 @@ void customerDashBoard()
         switch (choice)
         {
         case 1:
-            /* code */
+            system("clear");
+            m.printMovie();
+            break;
+
+        case 2:
+            system("clear");
             break;
 
         case 6:
@@ -796,7 +808,7 @@ again:
         }
 
         system("clear");
-        cout << leftSide << " MOBILE NUMBER IS INVALID , PLEASE ENTER AGAIN " << RightSide << "\n\n";
+        cout << leftSide << " MOBILE NUMBER DOES NOT EXIST , PLEASE ENTER AGAIN " << RightSide << "\n\n";
         goto reEnterMobileNo;
     }
 
@@ -819,6 +831,7 @@ again:
 void adminDashboard()
 {
     Admin a;
+    Movie m;
     if (a.adminLogin() == 1)
         return;
 
@@ -880,4 +893,87 @@ void adminDashboard()
             break;
         }
     } while (choice != 5);
+}
+
+void loadMovieData()
+{
+    string line;
+    ifstream file1("Day1_Movie_Details.txt");
+    if (!file1)
+    {
+        cout << leftSide << "Unable To Open File1 , Or File Does Not Exist" << RightSide << "\n"
+             << lineSeperator;
+    }
+
+    else
+    {
+        while (getline(file1, line))
+        {
+            day1[j].name = line.substr(7);
+            getline(file1, line);
+            day1[j].duration = stoi(line.substr(17));
+            getline(file1, line);
+            day1[j].screenNo = stoi(line.substr(12));
+            getline(file1, line);
+            day1[j].marvel = stof(line.substr(23));
+            getline(file1, line);
+            day1[j].royal = stof(line.substr(22));
+            getline(file1, line);
+            day1[j].recliner = stof(line.substr(25));
+            getline(file1, line);
+            day1[j].showHr = stoi(line.substr(21));
+
+            if (day1[j].showHr >= 10)
+                day1[j].showMins = stoi(line.substr(26));
+            else
+                day1[j].showMins = stoi(line.substr(25));
+            getline(file1, line);
+            day1[j].showNo = stoi(line.substr(11));
+
+            getline(file1, line);
+            j++;
+        }
+        file1.close();
+    }
+    ifstream File2("Day2_Movie_Details.txt");
+    if (!File2)
+    {
+        cout << leftSide << "Unable To Open File2 , Or File Does Not Exist" << RightSide << "\n"
+             << lineSeperator;
+    }
+
+    else
+    {
+        while (getline(File2, line))
+        {
+            day2[k].name = line.substr(7);
+            getline(File2, line);
+            day2[k].duration = stoi(line.substr(17));
+            getline(File2, line);
+            day2[k].screenNo = stoi(line.substr(12));
+            getline(File2, line);
+            day2[k].marvel = stof(line.substr(23));
+            getline(File2, line);
+            day2[k].royal = stof(line.substr(22));
+            getline(File2, line);
+            day2[k].recliner = stof(line.substr(25));
+            getline(File2, line);
+            day2[k].showHr = stoi(line.substr(21));
+
+            if (day2[k].showHr >= 10)
+                day2[k].showMins = stoi(line.substr(26));
+            else
+                day2[k].showMins = stoi(line.substr(25));
+            getline(File2, line);
+            day2[k].showNo = stoi(line.substr(11));
+            getline(File2, line);
+            k++;
+        }
+        File2.close();
+    }
+}
+
+void loadMovieSeats()
+{
+    fstream iFile;
 }

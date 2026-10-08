@@ -1,19 +1,6 @@
-Name => Krishna
+Name => Krishna Tailor
 Age => 19
 Mobile No => 9825454488
 Password => Ks@54488
 Customer Id => 100
-
-Name => Prince
-Age => 19
-Mobile No => 9879000675
-Password => Prince@123
-Customer Id => 101
-
-Name => Herik
-Age => 19
-Mobile No => 1234567890
-Password => Herik@123
-Customer Id => 102
-
 
