@@ -1,1 +1,9 @@
-\
+Name => Avengers
+Movie Duration => 150
+Screen No => 2
+Price Of Marvel Seat => 150
+Price Of Royal Seat => 200
+Price Of Recliner Seat => 350
+Show Starting Time => 12 : 50
+Show No => 1
+
