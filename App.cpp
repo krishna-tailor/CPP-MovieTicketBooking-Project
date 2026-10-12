@@ -4,6 +4,14 @@
 #include <iomanip>
 using namespace std;
 
+void Enter_To_Continue()
+{
+    cout << endl
+         << "Press Enter to Continue...";
+    cin.ignore();
+    cin.get();
+}
+
 const int WIDTH = 52;
 
 ostream &mainHeading(ostream &out)
@@ -61,12 +69,14 @@ private:
     int showTrack;
 
 public:
+    int friend validateSeat(char row, int column, int showNo);
     void friend loadMovieSeats();
     void friend loadMovieData(); // Loads The Movie Infortmation At The Starting Of The Program
+
     void addMoive();
     void updateMovies();
     int printMovie();
-    void printSeats(int val, int showNo);
+    void printSeatsAndInformation(int val, int showNo);
     void printDay1Movies();
     void printDay2Movies();
     void loadSeats(int dayNo, int showNo);
@@ -75,43 +85,171 @@ public:
 
 int Movie::count = 0;
 
-void Movie::printSeats(int val, int showNo)
+void Movie::printSeatsAndInformation(int dayNo, int showNo)
 {
-    Movie m;
-    if (val == 1)
+    char ch = 'A';
+    system("clear");
+    cout << "+------+------------------------------------------+----------+-----------+-------------------+--------------+\n";
+    cout << "|Sr No | Movie Name                               | Duration | Screen No | Starting Time     | Show No      |\n";
+    cout << "+-------------------------------------------------+----------+-----------+-------------------+--------------+\n";
+    if (dayNo == 1)
     {
-        for (int k = 0; k < j; k++)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                for (int m = 0; m < 10; m++)
-                {
-                    cout << right << setw(5) << "X ";
-                }
-                cout << "\n";
-            }
-        }
-        cout << "\n";
-        cout << "\\________________________________________________/"
-             << "\n             Screen This Side\n\n";
+        cout << "| "
+             << left << setw(4) << showNo + 1
+             << " | "
+             << left << setw(40) << day1[showNo].name
+             << " | "
+             << left << setw(8) << day1[showNo].duration
+             << " | "
+             << left << setw(9) << day1[showNo].screenNo
+             << " | ";
+
+        // Starting Time
+        cout << right << setw(2) << setfill('0') << day1[showNo].showHr
+             << ":"
+             << setw(2) << day1[showNo].showMins
+             << setfill(' ')
+             << "             | ";
+
+        // Show No
+        cout << left << setw(13) << day1[showNo].showNo
+             << "|\n";
     }
 
-    else
+    else if (dayNo == 2)
     {
-        for (int j = 0; j < k; k++)
+        cout << "| "
+             << left << setw(4) << showNo + 1
+             << " | "
+             << left << setw(40) << day2[showNo].name
+             << " | "
+             << left << setw(8) << day2[showNo].duration
+             << " | "
+             << left << setw(9) << day2[showNo].screenNo
+             << " | ";
+
+        // Starting Time
+        cout << right << setw(2) << setfill('0') << day2[showNo].showHr
+             << ":"
+             << setw(2) << day2[showNo].showMins
+             << setfill(' ')
+             << "             | ";
+
+        // Show No
+        cout << left << setw(13) << day2[showNo].showNo
+             << "|\n";
+    }
+    cout << "+-------------------------------------------------+----------+-----------+-------------------+--------------+\n";
+    cout << "\n";
+    // Printing Seats Of The Show
+    for (int i = 0; i < 10; i++)
+    {
+        if (i == 0 || i == 1)
         {
-            cout << "Show No : " << day2[j].showTrack << endl;
-            for (int i = 0; i < 10; i++)
+            if (dayNo == 1)
             {
-                for (int m = 0; m < 10; m++)
+                if (i == 0)
+                    cout << right << setw(32) << "Recliner: Rs." << day1[showNo].recliner << "\n\n";
+            }
+
+            else if (dayNo == 2)
+            {
+                if (i == 0)
+                    cout << right << setw(32) << "Recliner: Rs." << day2[showNo].recliner << "\n\n";
+            }
+            cout << ch++ << "       ";
+        }
+
+        if (i == 2 || i == 7)
+            cout << "\n\n";
+
+        if (i >= 2)
+        {
+            if (dayNo == 1)
+            {
+                if (i == 2)
+                    cout << right << setw(30) << "Royal: Rs." << day1[showNo].royal << "\n\n";
+
+                if (i == 7)
+                    cout << right << setw(30) << "Marvel: Rs." << day1[showNo].marvel << "\n\n";
+            }
+            else if (dayNo == 1)
+            {
+                if (i == 2)
+                    cout << right << setw(30) << "Royal: Rs." << day2[showNo].royal << "\n\n";
+
+                if (i == 7)
+                    cout << right << setw(30) << "Marvel: Rs." << day2[showNo].marvel << "\n\n";
+            }
+            if (i >= 7)
+                cout << ch++ << "       ";
+            else
+                cout << ch++ << "    ";
+        }
+
+        for (int j = 0; j < 10; j++)
+        {
+
+            if (j != 9)
+            {
+                if (dayNo == 1)
                 {
-                    cout << day2[j].seats[i][m] << " ";
+
+                    if (day1[showNo].seats[i][j] == 'O')
+                    {
+                        cout << "XX ";
+                    }
+                    else
+                        cout << "0" << j + 1 << " ";
                 }
-                cout << "\n";
+                else if (dayNo == 2)
+                {
+
+                    if (day2[showNo].seats[i][j] == 'O')
+                    {
+                        cout << "XX ";
+                    }
+                    else
+                        cout << "0" << j + 1 << " ";
+                }
+            }
+
+            else
+            {
+                if (dayNo == 1)
+                {
+
+                    if (day1[showNo].seats[i][j] == 'O')
+                    {
+                        cout << "XX ";
+                    }
+
+                    else
+                        cout << j + 1;
+                }
+                else if (dayNo == 2)
+                {
+
+                    if (day2[showNo].seats[i][j] == 'O')
+                    {
+                        cout << "XX ";
+                    }
+                    else
+                        cout << j + 1;
+                }
+            }
+
+            if (i >= 2 && i <= 6)
+            {
+                if (j == 1 || j == 7)
+                    cout << "   ";
             }
         }
         cout << "\n";
     }
+
+    cout << "\n\n  \\_________________________________________/\n"
+         << "               Screen This Side\n";
 }
 
 // Load Seats In the file when the new movie enters
@@ -264,6 +402,7 @@ dayNo:
     j = 0;
     k = 0;
     loadMovieData();
+    Enter_To_Continue();
 }
 
 void Movie::printDay1Movies()
@@ -388,17 +527,20 @@ int Movie::printMovie()
     {
         system("clear");
         m.printDay1Movies();
+        Enter_To_Continue();
     }
     else if (choice1 == 2)
     {
         system("clear");
         m.printDay2Movies();
+        Enter_To_Continue();
     }
     else if (choice1 == 3)
     {
         system("clear");
         m.printDay1Movies();
         m.printDay2Movies();
+        Enter_To_Continue();
     }
     else
     {
@@ -508,6 +650,7 @@ void Admin::movieOperatons()
             break;
         }
     } while (choice != 5);
+    Enter_To_Continue();
 }
 
 // Class Customer
@@ -535,6 +678,7 @@ public:
 
 void Customer::bookForCurrentDayShows()
 {
+    char row, column;
     Movie m;
     int toalTickets, srNo;
     m.printDay1Movies();
@@ -545,13 +689,36 @@ enterAgain:
     if (srNo >= j + 1 || srNo < 1)
     {
         cout << "\n\n";
-        cout << leftSide << " Invalid Sr No , Enter Again " << RightSide;
+        cout << leftSide << " Invalid Sr No , Enter Again " << RightSide << "\n";
         goto enterAgain;
     }
 
     cout << "\n\n";
     system("clear");
-    m.printSeats(1, srNo - 1);
+    m.printSeatsAndInformation(1, srNo - 1);
+reEnterRow:
+    cout << "Enter Row Character: ";
+    cin >> row;
+    if (row > 'I' || row > 'i' && row < 'A' || row < 'a')
+    {
+        cout << leftSide << " Invalid Row Character , Please Enter Again " << RightSide << endl;
+        goto reEnterRow;
+    }
+
+reEnterColumnNo:
+    cout << "\nEnter Column No";
+    cin >> column;
+
+    if (column > 10 || column < 1)
+    {
+        cout << leftSide << " Invalid Column No , Please Enter Again " << RightSide << endl;
+        goto reEnterRow;
+    }
+
+    if (validateSeat(row, column, srNo - 1) == 1)
+    {
+        goto reEnterRow;
+    }
 }
 
 void Customer::bookTickets()
@@ -574,14 +741,17 @@ void Customer::bookTickets()
     {
         system("clear");
         bookForCurrentDayShows();
+        Enter_To_Continue();
     }
     else if (choice == 2)
     {
         system("clear");
+        Enter_To_Continue();
     }
     else if (choice == 3)
     {
         system("clear");
+        Enter_To_Continue();
     }
     else
     {
@@ -848,6 +1018,7 @@ void customerDashBoard()
             break;
         }
     } while (choice != 6);
+    Enter_To_Continue();
 }
 
 void accountValidation()
@@ -986,6 +1157,7 @@ void adminDashboard()
             break;
         }
     } while (choice != 5);
+    Enter_To_Continue();
 }
 
 void loadMovieData()
@@ -1091,6 +1263,7 @@ void loadMovieSeats()
             }
             getline(iFile, line);
             j++;
+            m = 0;
         }
         iFile.close();
     }
@@ -1115,7 +1288,86 @@ void loadMovieSeats()
             }
             getline(iFile, line);
             k++;
+            n = 0;
         }
         iFile.close();
+    }
+}
+
+int validateSeat(char row, int column, int showNo)
+{
+    switch (row)
+    {
+    case 'A':
+    case 'a':
+        if (day1[showNo].seats[0][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+
+    case 'B':
+    case 'b':
+        if (day1[showNo].seats[1][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'C':
+    case 'c':
+        if (day1[showNo].seats[2][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'D':
+    case 'd':
+        if (day1[showNo].seats[3][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'E':
+    case 'e':
+        if (day1[showNo].seats[4][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'F':
+    case 'f':
+        if (day1[showNo].seats[5][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'G':
+    case 'g':
+        if (day1[showNo].seats[6][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'H':
+    case 'h':
+        if (day1[showNo].seats[7][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'I':
+    case 'i':
+        if (day1[showNo].seats[8][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
+    case 'J':
+    case 'j':
+        if (day1[showNo].seats[9][column] == 'O')
+        {
+            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+            return 1;
+        }
     }
 }
