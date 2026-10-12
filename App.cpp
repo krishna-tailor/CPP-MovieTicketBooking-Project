@@ -69,7 +69,8 @@ private:
     int showTrack;
 
 public:
-    int friend validateSeat(char row, int column, int showNo);
+    int availableTickets;
+    int friend validateSeat(char row, int column, int showNo, int dayNo);
     void friend loadMovieSeats();
     void friend loadMovieData(); // Loads The Movie Infortmation At The Starting Of The Program
 
@@ -270,6 +271,7 @@ void Movie::loadSeats(int dayNo, int showNo)
         }
         oFile << "\n";
     }
+    oFile << "Total Available Tickets => " << 20;
     oFile << "\n";
     oFile.close();
 }
@@ -668,60 +670,115 @@ public:
     friend void loadData();
     friend void accountValidation();
 
-    void bookTickets();
-    void bookForCurrentDayShows();
+    void bookTicketsMenu();
+    void bookTicketOfShows(int DayNo);
     void bookForNextDayShows();
     // void viewBookedTickets();
     // void updateInformation();
     // void cancelTickets();
 } c1[10000];
 
-void Customer::bookForCurrentDayShows()
+void Customer::bookTicketOfShows(int dayNo)
 {
     char row, column;
     Movie m;
-    int toalTickets, srNo;
-    m.printDay1Movies();
+    int toalTickets, srNo, totalTickets;
+    if (dayNo == 1)
+        m.printDay1Movies();
+    else
+        m.printDay2Movies();
 
-enterAgain:
+enterSrNoAgain:
     cout << "Enter The Movie Sr No To Book Tickets =>";
     cin >> srNo;
-    if (srNo >= j + 1 || srNo < 1)
+    if (dayNo == 1)
     {
+        if (srNo >= j + 1 || srNo < 1)
+        {
+            cout << "\n\n";
+            cout << leftSide << " Invalid Sr No , Enter Again " << RightSide << "\n";
+            goto enterSrNoAgain;
+        }
         cout << "\n\n";
-        cout << leftSide << " Invalid Sr No , Enter Again " << RightSide << "\n";
-        goto enterAgain;
+        system("clear");
+        m.printSeatsAndInformation(1, srNo - 1);
     }
 
-    cout << "\n\n";
+    else
+    {
+        if (srNo >= k + 1 || srNo < 1)
+        {
+            cout << "\n\n";
+            cout << leftSide << " Invalid Sr No , Enter Again " << RightSide << "\n";
+            goto enterSrNoAgain;
+        }
+        cout << "\n\n";
+        system("clear");
+        m.printSeatsAndInformation(2, srNo - 1);
+    }
+
+reEnterTotalTickets:
+    cout << "\nEnter How Many Tickets Your Want To Book At A Time: ";
+    cin >> totalTickets;
+    if (dayNo == 1)
+    {
+        if (totalTickets > day1[srNo - 1].availableTickets)
+        {
+            cout << leftSide << "The Number Of Tickets Your Want Are More Than The Total Tickets Available " << RightSide << endl;
+            goto reEnterTotalTickets;
+        }
+    }
+
+    else
+    {
+        if (totalTickets > day2[srNo - 1].availableTickets)
+        {
+            cout << leftSide << "The Number Of Tickets Your Want Are More Than The Total Tickets Available " << RightSide << endl;
+            goto reEnterTotalTickets;
+        }
+    }
+
     system("clear");
-    m.printSeatsAndInformation(1, srNo - 1);
-reEnterRow:
-    cout << "Enter Row Character: ";
-    cin >> row;
-    if (row > 'I' || row > 'i' && row < 'A' || row < 'a')
+    if (dayNo == 1)
+        m.printDay1Movies();
+    else
+        m.printDay2Movies();
+    for (int i = 0; i < totalTickets; i++)
     {
-        cout << leftSide << " Invalid Row Character , Please Enter Again " << RightSide << endl;
-        goto reEnterRow;
-    }
 
-reEnterColumnNo:
-    cout << "\nEnter Column No";
-    cin >> column;
+        cout << "\n";
+    reEnterRow:
+        cout << "Enter Row Character: ";
+        cin >> row;
+        if (row > 'I' || row > 'i' && row < 'A' || row < 'a')
+        {
+            cout << leftSide << " Invalid Row Character , Please Enter Again " << RightSide << endl;
+            goto reEnterRow;
+        }
 
-    if (column > 10 || column < 1)
-    {
-        cout << leftSide << " Invalid Column No , Please Enter Again " << RightSide << endl;
-        goto reEnterRow;
-    }
+    reEnterColumnNo:
+        cout << "\nEnter Column No";
+        cin >> column;
 
-    if (validateSeat(row, column, srNo - 1) == 1)
-    {
-        goto reEnterRow;
+        if (column > 10 || column < 1)
+        {
+            cout << leftSide << " Invalid Column No , Please Enter Again " << RightSide << endl;
+            goto reEnterRow;
+        }
+
+        if (validateSeat(row, column, srNo - 1, dayNo) == 1)
+        {
+            goto reEnterRow;
+            cout << "\n\n";
+        }
+
+        else
+        {
+        }
     }
 }
 
-void Customer::bookTickets()
+void Customer::bookTicketsMenu()
 {
     int choice;
     cout << "\n";
@@ -740,7 +797,7 @@ void Customer::bookTickets()
     if (choice == 1)
     {
         system("clear");
-        bookForCurrentDayShows();
+        bookTicketOfShows(1);
         Enter_To_Continue();
     }
     else if (choice == 2)
@@ -751,7 +808,8 @@ void Customer::bookTickets()
     else if (choice == 3)
     {
         system("clear");
-        Enter_To_Continue();
+        cout << leftSide << " REDIRECTED TO PREVIOUS MENU" << RightSide << endl;
+        cout << lineSeperator << endl;
     }
     else
     {
@@ -1004,7 +1062,7 @@ void customerDashBoard()
 
         case 2:
             system("clear");
-            c.bookTickets();
+            c.bookTicketsMenu();
             break;
 
         case 6:
@@ -1262,6 +1320,8 @@ void loadMovieSeats()
                 day1[j].seats[m++] = line;
             }
             getline(iFile, line);
+            day1[j].availableTickets = stoi(line.substr(26));
+            getline(iFile, line);
             j++;
             m = 0;
         }
@@ -1294,80 +1354,163 @@ void loadMovieSeats()
     }
 }
 
-int validateSeat(char row, int column, int showNo)
+int validateSeat(char row, int column, int showNo, int dayNo)
 {
-    switch (row)
+    // Day 1 Seat Validation
+    if (dayNo == 1)
     {
-    case 'A':
-    case 'a':
-        if (day1[showNo].seats[0][column] == 'O')
+        switch (row)
         {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
+        case 'A':
+        case 'a':
+            if (day1[showNo].seats[0][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
 
-    case 'B':
-    case 'b':
-        if (day1[showNo].seats[1][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
+        case 'B':
+        case 'b':
+            if (day1[showNo].seats[1][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'C':
+        case 'c':
+            if (day1[showNo].seats[2][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'D':
+        case 'd':
+            if (day1[showNo].seats[3][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'E':
+        case 'e':
+            if (day1[showNo].seats[4][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'F':
+        case 'f':
+            if (day1[showNo].seats[5][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'G':
+        case 'g':
+            if (day1[showNo].seats[6][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'H':
+        case 'h':
+            if (day1[showNo].seats[7][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'I':
+        case 'i':
+            if (day1[showNo].seats[8][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'J':
+        case 'j':
+            if (day1[showNo].seats[9][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
         }
-    case 'C':
-    case 'c':
-        if (day1[showNo].seats[2][column] == 'O')
+    }
+
+    // Day 2 Seat Validation
+    else
+    {
+        switch (row)
         {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'D':
-    case 'd':
-        if (day1[showNo].seats[3][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'E':
-    case 'e':
-        if (day1[showNo].seats[4][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'F':
-    case 'f':
-        if (day1[showNo].seats[5][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'G':
-    case 'g':
-        if (day1[showNo].seats[6][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'H':
-    case 'h':
-        if (day1[showNo].seats[7][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'I':
-    case 'i':
-        if (day1[showNo].seats[8][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
-        }
-    case 'J':
-    case 'j':
-        if (day1[showNo].seats[9][column] == 'O')
-        {
-            cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
-            return 1;
+        case 'A':
+        case 'a':
+            if (day2[showNo].seats[0][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+
+        case 'B':
+        case 'b':
+            if (day2[showNo].seats[1][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'C':
+        case 'c':
+            if (day2[showNo].seats[2][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'D':
+        case 'd':
+            if (day2[showNo].seats[3][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'E':
+        case 'e':
+            if (day2[showNo].seats[4][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'F':
+        case 'f':
+            if (day2[showNo].seats[5][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'G':
+        case 'g':
+            if (day2[showNo].seats[6][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'H':
+        case 'h':
+            if (day2[showNo].seats[7][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'I':
+        case 'i':
+            if (day2[showNo].seats[8][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
+        case 'J':
+        case 'j':
+            if (day2[showNo].seats[9][column] == 'O')
+            {
+                cout << leftSide << "Seat Is Occupied Please Enter , New Seat Again " << RightSide << endl;
+                return 1;
+            }
         }
     }
 }
