@@ -1,0 +1,6 @@
+Name => Krishna Tailor
+Age => 19
+Mobile No => 9825454488
+Password => Ks@54488
+Customer Id => 100
+
