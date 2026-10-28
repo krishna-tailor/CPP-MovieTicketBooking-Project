@@ -43,13 +43,38 @@ int i = 0;        // Tracks the index of objects Of Customer Class
 int j = 0, k = 0; // Tracks The Index Of Movie Object Day1 and Day2
 int m = 0, n = 0; // Tracks The Index Of Character Of Seat Array Of Day1 And Day2 Object
 int l;            // Track The Index Of Current User Logged In
+int s = 0;        // Tracks The Index Of Booked Tickets Of Current User Logged In
 
 void customerDashBoard();
 void adminDashboard();
 void loadMovieData();
 void loadMovieSeats();
 void loadCustomerData();
+void loadBookedTickets();
 void validateCustomerAcc();
+
+// Class Customer
+class Customer
+{
+private:
+    string name, movieSelected, password, bookedSeats[20], showDuration, showTime;
+    int age, LastId;
+    int customerId, screenNo;
+    long long int mobileNo;
+    int showNo, dayNo;
+
+public:
+    float billAmount;
+    void createAccount();
+
+    friend void loadBookedTickets();
+    friend void loadCustomerData();
+    friend void validateCustomerAcc();
+
+    void bookTicketsMenu();
+    void bookTickets(int DayNo);
+    void viewBookedTickets();
+} c1[10000];
 
 /*
 Read Data from The File As Soon As Program Starts
@@ -65,7 +90,6 @@ public:
     int showHr, showMins;          // Show That at what time show will start
     int showNo, dayNo;
     static int count;
-    int showTrack;
 
     string name;
     string seats[10];
@@ -75,16 +99,19 @@ public:
     void friend loadMovieData();  // Loads The Movie Infortmation At The Starting Of The Program
 
     void addMoive();
-    // void updateMovies();
+    void updateMovies();
+    void deleteMovies();
     int printMovie();
     void printSeatsAndInformation(int val, int showNo);
     void printDay1Movies();
     void printDay2Movies();
     void loadSeats(int dayNo, int showNo, int flag);
-    // void deleteMovies();
 } day1[100], day2[100];
 
 int Movie::count = 0;
+
+bool saveMovieDetails(int dayNo, int skippedIndex);
+bool saveMovieSeats(int dayNo, int skippedIndex);
 
 void Movie::printSeatsAndInformation(int dayNo, int showNo)
 {
@@ -259,7 +286,7 @@ void Movie::loadSeats(int dayNo, int showNo, int flag = 0)
     ofstream oFile;
     if (flag == 0)
     {
-        
+
         if (dayNo == 1)
             oFile.open("Day1MovieSeats.txt", ios::app);
         else
@@ -282,28 +309,147 @@ void Movie::loadSeats(int dayNo, int showNo, int flag = 0)
     else if (flag == 1)
     {
         if (dayNo == 1)
-            oFile.open("Day1MovieSeats.txt");
-        else
-            oFile.open("Day2MovieSeats.txt");
-        for (int k = 0; k < j; k++)
         {
-            oFile << "Show No: " << day1[k].showNo << "\n";
-            for (int i = 0; i < 10; i++)
+            oFile.open("Day1MovieSeats.txt");
+            cout << "Show No => " << showNo << endl;
+            for (int k = 0; k < j; k++)
             {
-                for (int p = 0; p < 10; p++)
+                oFile << "Show No: " << day1[k].showNo << "\n";
+                for (int i = 0; i < 10; i++)
                 {
-                    if (day1[k].seats[i][p] == 'O')
-                        oFile << 'O';
-                    else
-                        oFile << 'X';
+                    for (int p = 0; p < 10; p++)
+                    {
+
+                        if (day1[k].seats[i][p] == 'O')
+                            oFile << 'O';
+                        else
+                            oFile << 'X';
+                    }
+                    oFile << "\n";
                 }
-                oFile << "\n";
+                oFile << "Total Available Tickets => " << day1[k].availableTickets;
+
+                oFile << "\n\n";
             }
-            oFile << "Total Available Tickets => " << day1[showNo].availableTickets;
-            oFile << "\n\n";
+            oFile.close();
         }
-        oFile.close();
+        else
+        {
+
+            oFile.open("Day2MovieSeats.txt");
+
+            cout << "Show No => " << showNo << endl;
+            for (int j = 0; j < k; j++)
+            {
+                oFile << "Show No: " << day2[j].showNo << "\n";
+                for (int i = 0; i < 10; i++)
+                {
+                    for (int p = 0; p < 10; p++)
+                    {
+
+                        if (day2[j].seats[i][p] == 'O')
+                            oFile << 'O';
+                        else
+                            oFile << 'X';
+                    }
+                    oFile << "\n";
+                }
+                oFile << "Total Available Tickets => " << day2[j].availableTickets;
+
+                oFile << "\n\n";
+            }
+            oFile.close();
+        }
     }
+}
+
+bool saveMovieDetails(int dayNo, int skippedIndex)
+{
+    ofstream outputFile;
+    Movie *movies;
+    int totalMovies;
+
+    if (dayNo == 1)
+    {
+        outputFile.open("Day1_Movie_Details.txt");
+        movies = day1;
+        totalMovies = j;
+    }
+    else
+    {
+        outputFile.open("Day2_Movie_Details.txt");
+        movies = day2;
+        totalMovies = k;
+    }
+
+    if (!outputFile)
+        return false;
+
+    for (int movieNo = 0; movieNo < totalMovies; movieNo++)
+    {
+        if (movieNo == skippedIndex)
+            continue;
+
+        outputFile << "Name =>" << movies[movieNo].name
+                   << "\nMovie Duration => " << movies[movieNo].duration
+                   << "\nScreen No => " << movies[movieNo].screenNo
+                   << "\nPrice Of Marvel Seat => " << movies[movieNo].marvel
+                   << "\nPrice Of Royal Seat => " << movies[movieNo].royal
+                   << "\nPrice Of Recliner Seat => " << movies[movieNo].recliner
+                   << "\nShow Starting Time => " << movies[movieNo].showHr << " : " << movies[movieNo].showMins
+                   << "\nShow No => " << movies[movieNo].showNo << "\n\n";
+    }
+
+    outputFile.close();
+    return outputFile.good();
+}
+
+bool saveMovieSeats(int dayNo, int skippedIndex)
+{
+    ofstream outputFile;
+    Movie *movies;
+    int totalMovies;
+    string fileName;
+
+    if (dayNo == 1)
+    {
+        fileName = "Day1MovieSeats.txt";
+        movies = day1;
+        totalMovies = j;
+    }
+    else
+    {
+        fileName = "Day2MovieSeats.txt";
+        movies = day2;
+        totalMovies = k;
+    }
+
+    outputFile.open(fileName.c_str());
+    if (!outputFile)
+        return false;
+
+    for (int movieNo = 0; movieNo < totalMovies; movieNo++)
+    {
+        if (movieNo == skippedIndex)
+            continue;
+
+        outputFile << "Show No: " << movies[movieNo].showNo << "\n";
+        for (int row = 0; row < 10; row++)
+        {
+            for (int column = 0; column < 10; column++)
+            {
+                if (movies[movieNo].seats[row][column] == 'O')
+                    outputFile << 'O';
+                else
+                    outputFile << 'X';
+            }
+            outputFile << "\n";
+        }
+        outputFile << "Total Available Tickets => " << movies[movieNo].availableTickets << "\n\n";
+    }
+
+    outputFile.close();
+    return outputFile.good();
 }
 
 void Movie::addMoive()
@@ -433,7 +579,278 @@ dayNo:
     cout << leftSide << " Movie Added Successfully " << RightSide << "\n\n";
     j = 0;
     k = 0;
+    m = 0;
     loadMovieData();
+    loadMovieSeats();
+    Enter_To_Continue();
+}
+
+void Movie::updateMovies()
+{
+    int dayNo, showNo, totalMovies;
+    Movie *movies;
+
+    cout << "\n"
+         << mainHeading << "\n"
+         << setw(37) << right << "UPDATE MOVIE DETAILS\n"
+         << mainHeading << "\n\n"
+         << "        +--------------------------------------+\n"
+         << "        |             SELECT SHOW DAY          |\n"
+         << "        +--------------------------------------+\n"
+         << "        |  [1]  Current Day                    |\n"
+         << "        |  [2]  Next Day                       |\n"
+         << "        +--------------------------------------+\n\n"
+         << leftSide << " Select Day => ";
+    cin >> dayNo;
+
+    if (dayNo == 1)
+    {
+        movies = day1;
+        totalMovies = j;
+        printDay1Movies();
+    }
+    else if (dayNo == 2)
+    {
+        movies = day2;
+        totalMovies = k;
+        printDay2Movies();
+    }
+    else
+    {
+        cout << "\n" << leftSide << " Invalid Day Choice " << RightSide << endl;
+        return;
+    }
+
+    if (totalMovies == 0)
+    {
+        cout << "\n" << leftSide << " No Movies Available For The Selected Day " << RightSide << endl;
+        return;
+    }
+
+    cout << "\n" << leftSide << " Enter Movie Sr No To Update => ";
+    cin >> showNo;
+    if (showNo < 1 || showNo > totalMovies)
+    {
+        cout << "\n" << leftSide << " Invalid Movie Sr No " << RightSide << endl;
+        return;
+    }
+    showNo--;
+
+    Movie updatedMovie = movies[showNo];
+    cout << "\n"
+         << string(WIDTH, '-') << "\n"
+         << setw(37) << right << "CURRENT MOVIE DETAILS\n"
+         << string(WIDTH, '-') << "\n"
+         << left << setw(23) << "Movie Name" << ": " << updatedMovie.name
+         << "\n" << left << setw(23) << "Duration" << ": " << updatedMovie.duration << " minutes"
+         << "\n" << left << setw(23) << "Screen No" << ": " << updatedMovie.screenNo
+         << "\n" << left << setw(23) << "Marvel Seat Price" << ": Rs. " << updatedMovie.marvel
+         << "\n" << left << setw(23) << "Royal Seat Price" << ": Rs. " << updatedMovie.royal
+         << "\n" << left << setw(23) << "Recliner Seat Price" << ": Rs. " << updatedMovie.recliner
+         << "\n" << left << setw(23) << "Show Time" << ": "
+         << setw(2) << setfill('0') << updatedMovie.showHr << ":"
+         << setw(2) << updatedMovie.showMins << setfill(' ') << "\n"
+         << string(WIDTH, '-') << "\n\n";
+
+    cin.ignore();
+movieNameAgain:
+    cout << leftSide << " Enter Movie Name => ";
+    getline(cin, updatedMovie.name);
+    if (updatedMovie.name.empty())
+    {
+        cout << leftSide << " Movie Name Cannot Be Empty " << RightSide << endl
+             << endl;
+        goto movieNameAgain;
+    }
+    updatedMovie.name = " " + updatedMovie.name;
+
+durationAgain:
+    cout << leftSide << " Enter Duration In Minutes (At Least 60) => ";
+    cin >> updatedMovie.duration;
+    if (updatedMovie.duration < 60)
+    {
+        cout << leftSide << " Movie Duration Should Be Atleast 60 Minutes " << RightSide << endl
+             << endl;
+        goto durationAgain;
+    }
+
+screenAgain:
+    cout << leftSide << " Enter Screen No => ";
+    cin >> updatedMovie.screenNo;
+    if (updatedMovie.screenNo <= 0)
+    {
+        cout << leftSide << " Screen No Should Be Greater Than 0 " << RightSide << endl
+             << endl;
+        goto screenAgain;
+    }
+
+marvelAgain:
+    cout << leftSide << " Enter Marvel Seat Price (Minimum Rs.150) => ";
+    cin >> updatedMovie.marvel;
+    if (updatedMovie.marvel < 150)
+    {
+        cout << leftSide << " Marvel Seat Price Must Be Atleast Rs.150 " << RightSide << endl
+             << endl;
+        goto marvelAgain;
+    }
+
+royalAgain:
+    cout << leftSide << " Enter Royal Seat Price (Greater Than Marvel) => ";
+    cin >> updatedMovie.royal;
+    if (updatedMovie.royal <= updatedMovie.marvel)
+    {
+        cout << leftSide << " Royal Seat Price Must Be Greater Than Marvel Seat Price " << RightSide << endl
+             << endl;
+        goto royalAgain;
+    }
+
+reclinerAgain:
+    cout << leftSide << " Enter Recliner Seat Price (Greater Than Royal) => ";
+    cin >> updatedMovie.recliner;
+    if (updatedMovie.recliner <= updatedMovie.royal)
+    {
+        cout << leftSide << " Recliner Seat Price Must Be Greater Than Royal Seat Price " << RightSide << endl
+             << endl;
+        goto reclinerAgain;
+    }
+
+showHourAgain:
+    cout << leftSide << " Enter Show Starting Hour (0-24) => ";
+    cin >> updatedMovie.showHr;
+    if (updatedMovie.showHr > 24 || updatedMovie.showHr < 0)
+    {
+        cout << leftSide << " Starting Hour Must Be Between 0 And 24 " << RightSide << endl
+             << endl;
+        goto showHourAgain;
+    }
+
+showMinutesAgain:
+    cout << leftSide << " Enter Show Starting Minutes (0-60) => ";
+    cin >> updatedMovie.showMins;
+    if (updatedMovie.showMins > 60 || updatedMovie.showMins < 0)
+    {
+        cout << leftSide << " Starting Minutes Must Be Between 0 And 60 " << RightSide << endl
+             << endl;
+        goto showMinutesAgain;
+    }
+
+    Movie previousMovie = movies[showNo];
+    movies[showNo] = updatedMovie;
+    if (!saveMovieDetails(dayNo, -1))
+    {
+        movies[showNo] = previousMovie;
+        cout << "\n" << leftSide << " Unable To Save Movie Details " << RightSide << endl;
+        return;
+    }
+
+    j = 0;
+    k = 0;
+    loadMovieData();
+    loadMovieSeats();
+    cout << "\n"
+         << string(WIDTH, '-') << "\n"
+         << leftSide << " Movie Details Updated Successfully " << RightSide << "\n"
+         << string(WIDTH, '-') << endl;
+    Enter_To_Continue();
+}
+
+void Movie::deleteMovies()
+{
+    int dayNo, showNo, totalMovies;
+    Movie *movies;
+    char confirmation;
+
+    cout << "\n"
+         << mainHeading << "\n"
+         << setw(37) << right << "DELETE MOVIE SHOW\n"
+         << mainHeading << "\n\n"
+         << "        +--------------------------------------+\n"
+         << "        |             SELECT SHOW DAY          |\n"
+         << "        +--------------------------------------+\n"
+         << "        |  [1]  Current Day                    |\n"
+         << "        |  [2]  Next Day                       |\n"
+         << "        +--------------------------------------+\n\n"
+         << leftSide << " Select Day => ";
+    cin >> dayNo;
+
+    if (dayNo == 1)
+    {
+        movies = day1;
+        totalMovies = j;
+        printDay1Movies();
+    }
+    else if (dayNo == 2)
+    {
+        movies = day2;
+        totalMovies = k;
+        printDay2Movies();
+    }
+    else
+    {
+        cout << "\n" << leftSide << " Invalid Day Choice " << RightSide << endl;
+        return;
+    }
+
+    if (totalMovies == 0)
+    {
+        cout << "\n" << leftSide << " No Movies Available For The Selected Day " << RightSide << endl;
+        return;
+    }
+
+    cout << "\n" << leftSide << " Enter Movie Sr No To Delete => ";
+    cin >> showNo;
+    if (showNo < 1 || showNo > totalMovies)
+    {
+        cout << "\n" << leftSide << " Invalid Movie Sr No " << RightSide << endl;
+        return;
+    }
+    showNo--;
+
+    if (movies[showNo].availableTickets != 20)
+    {
+        cout << "\n"
+             << leftSide << " Cannot Delete This Show: Tickets Have Already Been Booked " << RightSide << endl
+             << leftSide << " Booked Seats Must Be Preserved " << RightSide << endl;
+        return;
+    }
+
+    cout << "\n"
+         << string(WIDTH, '-') << "\n"
+         << leftSide << " Delete \"" << movies[showNo].name << "\"? (Y/N) => ";
+    cin >> confirmation;
+    if (confirmation != 'Y' && confirmation != 'y')
+    {
+        cout << "\n" << leftSide << " Movie Deletion Cancelled " << RightSide << endl;
+        return;
+    }
+
+    if (!saveMovieDetails(dayNo, showNo))
+    {
+        cout << "\n" << leftSide << " Unable To Save Movie Details " << RightSide << endl;
+        return;
+    }
+    if (!saveMovieSeats(dayNo, showNo))
+    {
+        cout << "\n" << leftSide << " Unable To Save Movie Seat Data " << RightSide << endl;
+        return;
+    }
+
+    for (int movieNo = showNo; movieNo < totalMovies - 1; movieNo++)
+        movies[movieNo] = movies[movieNo + 1];
+
+    if (dayNo == 1)
+        j--;
+    else
+        k--;
+
+    j = 0;
+    k = 0;
+    loadMovieData();
+    loadMovieSeats();
+    cout << "\n"
+         << string(WIDTH, '-') << "\n"
+         << leftSide << " Movie Show Deleted Successfully " << RightSide << "\n"
+         << string(WIDTH, '-') << endl;
     Enter_To_Continue();
 }
 
@@ -561,13 +978,14 @@ int Movie::printMovie()
 }
 
 // Admin Class
-
 class Admin
 {
 public:
     Movie m;
     int adminLogin();
     void movieOperatons(); // CRUD Operations
+    void checkTotalRevenue();
+    void dynamicTicketPricing();
 };
 
 // Admin Class Functions
@@ -645,7 +1063,12 @@ void Admin::movieOperatons()
 
         case 3:
             system("clear");
-            // m.updateMovies();
+            m.updateMovies();
+            break;
+
+        case 4:
+            system("clear");
+            m.deleteMovies();
             break;
 
         case 5:
@@ -663,27 +1086,270 @@ void Admin::movieOperatons()
     Enter_To_Continue();
 }
 
-// Class Customer
-class Customer
+void Admin::checkTotalRevenue()
 {
-private:
-    string name, movieSelected, MovieTime, password, bookedSeats[20];
-    int age, LastId;
-    int customerId, billAmount;
-    long long int mobileNo;
+    float totalRevenue = 0;
+    int totalBookings = 0;
+    int estimatedBookings = 0;
+    string line, mobileLine, movieLine, screenLine, showLine;
+    string dayLine, timeLine, durationLine, ticketsLine, amountLine;
 
-public:
-    void createAccount();
+    for (int fileNo = 1; fileNo <= 2; fileNo++)
+    {
+        ifstream inputFile;
+        if (fileNo == 1)
+            inputFile.open("Day1_Booked_Tickets.txt");
+        else
+            inputFile.open("Day2_Booked_Tickets.txt");
 
-    friend void loadCustomerData();
-    friend void validateCustomerAcc();
+        if (!inputFile)
+            continue;
 
-    void bookTicketsMenu();
-    void bookTickets(int DayNo);
-    // void viewBookedTickets();
-    // void updateInformation();
-    // void cancelTickets();
-} c1[10000];
+        while (getline(inputFile, line))
+        {
+            if (line.substr(0, 16) != "Customer Name =>")
+                continue;
+
+            if (!getline(inputFile, mobileLine) ||
+                !getline(inputFile, movieLine) ||
+                !getline(inputFile, screenLine) ||
+                !getline(inputFile, showLine) ||
+                !getline(inputFile, dayLine) ||
+                !getline(inputFile, timeLine) ||
+                !getline(inputFile, durationLine) ||
+                !getline(inputFile, ticketsLine))
+                break;
+
+            amountLine.clear();
+            if (getline(inputFile, amountLine) && amountLine.substr(0, 16) == "Total Amount => ")
+            {
+                totalRevenue += stof(amountLine.substr(16));
+            }
+            else
+            {
+                int showNo = stoi(showLine.substr(11));
+                int totalMovies;
+
+                if (fileNo == 1)
+                    totalMovies = j;
+                else
+                    totalMovies = k;
+
+                for (int movieNo = 0; movieNo < totalMovies; movieNo++)
+                {
+                    if ((fileNo == 1 && day1[movieNo].showNo == showNo) ||
+                        (fileNo == 2 && day2[movieNo].showNo == showNo))
+                    {
+                        string bookedSeats = ticketsLine.substr(17);
+                        for (string::size_type seatNo = 0; seatNo < bookedSeats.length(); seatNo++)
+                        {
+                            if (bookedSeats[seatNo] == ' ' || (seatNo > 0 && bookedSeats[seatNo - 1] != ' '))
+                                continue;
+
+                            char row = bookedSeats[seatNo];
+                            if (fileNo == 1)
+                            {
+                                if (row == 'A' || row == 'a' || row == 'B' || row == 'b')
+                                    totalRevenue += day1[movieNo].recliner;
+                                else if ((row >= 'C' && row <= 'G') || (row >= 'c' && row <= 'g'))
+                                    totalRevenue += day1[movieNo].royal;
+                                else if ((row >= 'H' && row <= 'J') || (row >= 'h' && row <= 'j'))
+                                    totalRevenue += day1[movieNo].marvel;
+                            }
+                            else
+                            {
+                                if (row == 'A' || row == 'a' || row == 'B' || row == 'b')
+                                    totalRevenue += day2[movieNo].recliner;
+                                else if ((row >= 'C' && row <= 'G') || (row >= 'c' && row <= 'g'))
+                                    totalRevenue += day2[movieNo].royal;
+                                else if ((row >= 'H' && row <= 'J') || (row >= 'h' && row <= 'j'))
+                                    totalRevenue += day2[movieNo].marvel;
+                            }
+                        }
+                        estimatedBookings++;
+                        break;
+                    }
+                }
+            }
+            totalBookings++;
+        }
+    }
+
+    cout << "\n"
+         << mainHeading << "\n"
+         << setw(36) << right << "TOTAL REVENUE REPORT\n"
+         << mainHeading << "\n\n"
+         << left << setw(24) << "Total Bookings" << ": " << totalBookings << "\n"
+         << left << setw(24) << "Total Revenue" << ": Rs. "
+         << fixed << setprecision(2) << totalRevenue << "\n";
+    if (estimatedBookings > 0)
+        cout << "\n" << leftSide << " " << estimatedBookings
+             << " Older Booking(s) Estimated Using Current Ticket Prices " << RightSide << "\n";
+    if (totalBookings == 0)
+        cout << "\n" << leftSide << " No Booking Records Found " << RightSide << "\n";
+    cout << endl;
+    Enter_To_Continue();
+}
+
+void Admin::dynamicTicketPricing()
+{
+    int dayNo, showNo;
+    float marvelPrice, royalPrice, reclinerPrice;
+    int totalMovies;
+    string fileName;
+    ofstream outputFile;
+
+    cout << "\n"
+         << mainHeading << "\n"
+         << setw(39) << right << "DYNAMIC TICKET PRICING\n"
+         << mainHeading << "\n\n"
+         << "        +--------------------------------------+\n"
+         << "        |             SELECT SHOW DAY          |\n"
+         << "        +--------------------------------------+\n"
+         << "        |  [1]  Current Day                    |\n"
+         << "        |  [2]  Next Day                       |\n"
+         << "        +--------------------------------------+\n\n"
+         << leftSide << " Select Day => ";
+    cin >> dayNo;
+
+    if (dayNo == 1)
+    {
+        totalMovies = j;
+        fileName = "Day1_Movie_Details.txt";
+        m.printDay1Movies();
+    }
+    else if (dayNo == 2)
+    {
+        totalMovies = k;
+        fileName = "Day2_Movie_Details.txt";
+        m.printDay2Movies();
+    }
+    else
+    {
+        cout << "\n" << leftSide << " Invalid Day Choice " << RightSide << endl;
+        return;
+    }
+
+    if (totalMovies == 0)
+    {
+        cout << "\n" << leftSide << " No Movies Available For The Selected Day " << RightSide << endl;
+        return;
+    }
+
+    cout << "\n" << leftSide << " Enter Movie Sr No To Update => ";
+    cin >> showNo;
+    if (showNo < 1 || showNo > totalMovies)
+    {
+        cout << "\n" << leftSide << " Invalid Movie Sr No " << RightSide << endl;
+        return;
+    }
+    showNo--;
+
+    cout << "\n"
+         << string(WIDTH, '-') << "\n"
+         << setw(39) << right << "CURRENT TICKET PRICES\n"
+         << string(WIDTH, '-') << "\n";
+    if (dayNo == 1)
+    {
+        cout << left << setw(23) << "Marvel Seat" << right << "Rs. " << day1[showNo].marvel
+             << "\n" << left << setw(23) << "Royal Seat" << right << "Rs. " << day1[showNo].royal
+             << "\n" << left << setw(23) << "Recliner Seat" << right << "Rs. " << day1[showNo].recliner << endl;
+    }
+    else
+    {
+        cout << left << setw(23) << "Marvel Seat" << right << "Rs. " << day2[showNo].marvel
+             << "\n" << left << setw(23) << "Royal Seat" << right << "Rs. " << day2[showNo].royal
+             << "\n" << left << setw(23) << "Recliner Seat" << right << "Rs. " << day2[showNo].recliner << endl;
+    }
+    cout << string(WIDTH, '-') << "\n\n"
+         << setw(35) << right << "ENTER NEW TICKET PRICES\n\n";
+
+marvelPriceAgain:
+    cout << leftSide << " Marvel Seat (Minimum Rs.150) => ";
+    cin >> marvelPrice;
+    if (marvelPrice < 150)
+    {
+        cout << leftSide << " Marvel Seat Price Must Be Atleast Rs.150 " << RightSide << endl
+             << endl;
+        goto marvelPriceAgain;
+    }
+
+royalPriceAgain:
+    cout << leftSide << " Royal Seat (Greater Than Marvel) => ";
+    cin >> royalPrice;
+    if (royalPrice <= marvelPrice)
+    {
+        cout << leftSide << " Royal Seat Price Must Be Greater Than Marvel Seat Price " << RightSide << endl
+             << endl;
+        goto royalPriceAgain;
+    }
+
+reclinerPriceAgain:
+    cout << leftSide << " Recliner Seat (Greater Than Royal) => ";
+    cin >> reclinerPrice;
+    if (reclinerPrice <= royalPrice)
+    {
+        cout << leftSide << " Recliner Seat Price Must Be Greater Than Royal Seat Price " << RightSide << endl
+             << endl;
+        goto reclinerPriceAgain;
+    }
+
+    outputFile.open(fileName.c_str());
+    if (!outputFile)
+    {
+        cout << "\n" << leftSide << " Unable To Update Movie Details File " << RightSide << endl;
+        return;
+    }
+
+    if (dayNo == 1)
+    {
+        day1[showNo].marvel = marvelPrice;
+        day1[showNo].royal = royalPrice;
+        day1[showNo].recliner = reclinerPrice;
+        for (int movieNo = 0; movieNo < j; movieNo++)
+        {
+            outputFile << "Name =>" << day1[movieNo].name
+                       << "\nMovie Duration => " << day1[movieNo].duration
+                       << "\nScreen No => " << day1[movieNo].screenNo
+                       << "\nPrice Of Marvel Seat => " << day1[movieNo].marvel
+                       << "\nPrice Of Royal Seat => " << day1[movieNo].royal
+                       << "\nPrice Of Recliner Seat => " << day1[movieNo].recliner
+                       << "\nShow Starting Time => " << day1[movieNo].showHr << " : " << day1[movieNo].showMins
+                       << "\nShow No => " << day1[movieNo].showNo << "\n\n";
+        }
+    }
+    else
+    {
+        day2[showNo].marvel = marvelPrice;
+        day2[showNo].royal = royalPrice;
+        day2[showNo].recliner = reclinerPrice;
+        for (int movieNo = 0; movieNo < k; movieNo++)
+        {
+            outputFile << "Name =>" << day2[movieNo].name
+                       << "\nMovie Duration => " << day2[movieNo].duration
+                       << "\nScreen No => " << day2[movieNo].screenNo
+                       << "\nPrice Of Marvel Seat => " << day2[movieNo].marvel
+                       << "\nPrice Of Royal Seat => " << day2[movieNo].royal
+                       << "\nPrice Of Recliner Seat => " << day2[movieNo].recliner
+                       << "\nShow Starting Time => " << day2[movieNo].showHr << " : " << day2[movieNo].showMins
+                       << "\nShow No => " << day2[movieNo].showNo << "\n\n";
+        }
+    }
+
+    outputFile.close();
+    if (!outputFile)
+    {
+        cout << "\n" << leftSide << " Error While Saving Ticket Prices " << RightSide << endl;
+        return;
+    }
+    j = 0;
+    k = 0;
+    loadMovieData();
+    cout << "\n"
+         << string(WIDTH, '-') << "\n"
+         << leftSide << " Ticket Prices Updated And Saved Successfully " << RightSide << "\n"
+         << string(WIDTH, '-') << endl;
+}
 
 int validateSeat(char row, int column, int showNo, int dayNo)
 {
@@ -818,6 +1484,8 @@ void Customer::bookTickets(int dayNo)
     else
         m.printDay2Movies();
 
+    // Resting Bill Amount To 0 When A Customer Book New Tickets
+    c1[l].billAmount = 0;
 enterSrNoAgain:
     cout << "Enter The Movie Sr No To Book Tickets =>";
     cin >> srNo;
@@ -998,13 +1666,13 @@ reEnterTotalTickets:
             if (row == 'A' || row == 'a' || row == 'B' || row == 'b')
                 c1[l].billAmount += day1[srNo - 1].recliner;
 
-            else if (row >= 'C' && row <= 'G' || row >= 'c' && row <= 'g')
+            else if ((row >= 'C' && row <= 'G') || (row >= 'c' && row <= 'g'))
             {
-                c1[l].billAmount += day1[srNo - 1].marvel;
+                c1[l].billAmount += day1[srNo - 1].royal;
             }
 
-            else
-                c1[l].billAmount += day1[srNo - 1].royal;
+            else if (row >= 'H' && row <= 'J' || row >= 'h' && row <= 'j')
+                c1[l].billAmount += day1[srNo - 1].marvel;
 
             day1[srNo - 1].availableTickets--;
         }
@@ -1017,16 +1685,15 @@ reEnterTotalTickets:
 
             else if (row >= 'C' && row <= 'G' || row >= 'c' && row <= 'g')
             {
-                c1[l].billAmount += day2[srNo - 1].marvel;
+                c1[l].billAmount += day2[srNo - 1].royal;
             }
 
             else
-                c1[l].billAmount += day2[srNo - 1].royal;
-            day1[srNo - 1].availableTickets--;
+                c1[l].billAmount += day2[srNo - 1].marvel;
+            day2[srNo - 1].availableTickets--;
         }
     }
 
-    system("clear");
     cout << "\n\n";
     cout << "================================================\n";
     cout << "              MOVIE TICKET BILL                 \n";
@@ -1038,6 +1705,7 @@ reEnterTotalTickets:
         cout << "  Screen No        : " << day1[srNo - 1].screenNo << endl;
         cout << "  Show No          : " << day1[srNo - 1].showNo << endl;
         cout << "  Day No           : " << dayNo << endl;
+        cout << "  Show Duration    : " << day1[srNo - 1].duration << endl;
         cout << "  Show Time        : "
              << day1[srNo - 1].showHr << ":"
              << setw(2) << setfill('0') << day1[srNo - 1].showMins
@@ -1057,6 +1725,7 @@ reEnterTotalTickets:
         cout << "  Screen No        : " << day2[srNo - 1].screenNo << endl;
         cout << "  Show No          : " << day2[srNo - 1].showNo << endl;
         cout << "  Day No           : " << day2[srNo - 1].dayNo << endl;
+        cout << "  Show Duration    : " << day2[srNo - 1].duration << endl;
         cout << "  Show Time        : "
              << day2[srNo - 1].showHr << ":"
              << setw(2) << setfill('0') << day2[srNo - 1].showMins
@@ -1084,13 +1753,35 @@ reEnterTotalTickets:
         oFile << "Show No => " << day1[srNo - 1].showNo << endl;
         oFile << "Day No => " << dayNo << endl;
         oFile << "Show Time => " << day1[srNo - 1].showHr << ":" << day1[srNo - 1].showMins;
+        oFile << "\nShow Duration => " << day1[srNo - 1].duration;
         oFile << "\nTotal Tickets => ";
         for (int i = 0; i < a; i++)
             oFile << c1[l].bookedSeats[i] << " ";
-        oFile << "\n\n";
+        oFile << "\nTotal Amount => " << fixed << setprecision(2) << c1[l].billAmount << "\n\n";
         oFile.close();
 
-        m.loadSeats(dayNo, day1[srNo - 1].showNo, 1); // Last Parameter is flag
+        m.loadSeats(dayNo, srNo - 1, 1); // Last Parameter is flag
+    }
+
+    else
+    {
+        ofstream oFile("Day2_Booked_Tickets.txt", ios::app);
+
+        oFile << "Customer Name => " << c1[l].name << endl;
+        oFile << "Mobile No: " << c1[l].mobileNo << endl;
+        oFile << "Movie Name => " << day2[srNo - 1].name << endl;
+        oFile << "Screen No => " << day2[srNo - 1].screenNo << endl;
+        oFile << "Show No => " << day2[srNo - 1].showNo << endl;
+        oFile << "Day No => " << dayNo << endl;
+        oFile << "Show Time => " << day2[srNo - 1].showHr << ":" << day2[srNo - 1].showMins;
+        oFile << "\nShow Duration => " << day2[srNo - 1].duration;
+        oFile << "\nTotal Tickets => ";
+        for (int i = 0; i < a; i++)
+            oFile << c1[l].bookedSeats[i] << " ";
+        oFile << "\nTotal Amount => " << fixed << setprecision(2) << c1[l].billAmount << "\n\n";
+        oFile.close();
+
+        m.loadSeats(dayNo, srNo - 1, 1); // Last Parameter is flag
     }
 }
 
@@ -1119,6 +1810,7 @@ void Customer::bookTicketsMenu()
     else if (choice == 2)
     {
         system("clear");
+        bookTickets(2);
         Enter_To_Continue();
     }
     else if (choice == 3)
@@ -1132,6 +1824,84 @@ void Customer::bookTicketsMenu()
         system("clear");
         cout << "\nInvalid Choice! Please try again.\n";
     }
+}
+
+void Customer::viewBookedTickets()
+{
+    ifstream inputFile;
+    string line, mobileLine, movieLine, screenLine, showLine;
+    string dayLine, timeLine, durationLine, ticketsLine, ticketSeats;
+    int bookingNo = 0;
+
+    cout << "\n"
+         << mainHeading << "\n"
+         << setw(39) << right << "MY BOOKED TICKETS\n"
+         << mainHeading << "\n";
+
+    for (int fileNo = 1; fileNo <= 2; fileNo++)
+    {
+        inputFile.clear();
+        if (fileNo == 1)
+            inputFile.open("Day1_Booked_Tickets.txt");
+        else
+            inputFile.open("Day2_Booked_Tickets.txt");
+
+        if (!inputFile)
+        {
+            if (fileNo == 1)
+                cout << "\n" << leftSide << " Unable To Open Day 1 Booking File " << RightSide << endl;
+            continue;
+        }
+
+        while (getline(inputFile, line))
+        {
+            if (line.substr(0, 16) != "Customer Name =>")
+                continue;
+
+            if (!getline(inputFile, mobileLine) ||
+                !getline(inputFile, movieLine) ||
+                !getline(inputFile, screenLine) ||
+                !getline(inputFile, showLine) ||
+                !getline(inputFile, dayLine) ||
+                !getline(inputFile, timeLine) ||
+                !getline(inputFile, durationLine) ||
+                !getline(inputFile, ticketsLine))
+                break;
+
+            if (stoll(mobileLine.substr(11)) != c1[l].mobileNo)
+                continue;
+
+            bookingNo++;
+            int ticketCount = 0;
+            ticketSeats = ticketsLine.substr(17);
+            for (string::size_type seatNo = 0; seatNo < ticketSeats.length(); seatNo++)
+            {
+                if (ticketSeats[seatNo] != ' ' && (seatNo == 0 || ticketSeats[seatNo - 1] == ' '))
+                    ticketCount++;
+            }
+
+            cout << "\n"
+                 << string(WIDTH, '=') << "\n"
+                 << setw(35) << right << "BOOKING " << bookingNo << "\n"
+                 << string(WIDTH, '-') << "\n"
+                 << left << setw(18) << "Customer" << ": " << line.substr(17) << "\n"
+                 << left << setw(18) << "Movie" << ": " << movieLine.substr(14) << "\n"
+                 << left << setw(18) << "Screen" << ": " << screenLine.substr(13) << "\n"
+                 << left << setw(18) << "Show No" << ": " << showLine.substr(11) << "\n"
+                 << left << setw(18) << "Day" << ": " << dayLine.substr(10) << "\n"
+                 << left << setw(18) << "Show Time" << ": " << timeLine.substr(13) << "\n"
+                 << left << setw(18) << "Duration" << ": " << durationLine.substr(17) << " minutes\n"
+                 << left << setw(18) << "Tickets" << ": " << ticketCount << "\n"
+                 << left << setw(18) << "Seat Numbers" << ": " << ticketSeats << "\n"
+                 << string(WIDTH, '=') << "\n";
+        }
+        inputFile.close();
+    }
+
+    if (bookingNo == 0)
+        cout << "\n" << leftSide << " No Booked Tickets Found " << RightSide << endl;
+
+    Enter_To_Continue();
 }
 
 void Customer::createAccount()
@@ -1337,9 +2107,7 @@ void customerDashBoard()
         cout << mainHeading << mainHeading << "\n";
         cout << "||" << setw(58) << right << "CUSTOMER DASHBOARD" << "                                          ||\n";
         cout << mainHeading << mainHeading;
-
         cout << "\n\n";
-
         cout << "+------------------------------------------+\n";
         cout << "|              WHAT WOULD YOU LIKE         |\n";
         cout << "|                  TO DO?                  |\n";
@@ -1350,11 +2118,7 @@ void customerDashBoard()
         cout << "|       Select seats & make payment        |\n\n";
         cout << "|  [3]  My Booked Tickets                  |\n";
         cout << "|       View your booking details          |\n\n";
-        cout << "|  [4]  Update Information                 |\n";
-        cout << "|       Manage your account details        |\n\n";
-        cout << "|  [5]  Cancel Tickets                     |\n";
-        cout << "|       Cancel booking & view charges      |\n\n";
-        cout << "|  [6]  Back To Previous Menu              |\n";
+        cout << "|  [4]  Back To Previous Menu              |\n";
         cout << "+------------------------------------------+\n";
         cout << "\n  " << leftSide
              << " Enter Your Choice => ";
@@ -1373,7 +2137,11 @@ void customerDashBoard()
             c.bookTicketsMenu();
             break;
 
-        case 6:
+        case 3:
+            system("clear");
+            c.viewBookedTickets();
+            break;
+        case 5:
             system("clear");
             break;
 
@@ -1383,7 +2151,7 @@ void customerDashBoard()
             cout << lineSeperator;
             break;
         }
-    } while (choice != 6);
+    } while (choice != 4);
     Enter_To_Continue();
 }
 
@@ -1489,13 +2257,10 @@ void adminDashboard()
              << "        +------------------------------------------+\n\n";
         cout << "        |  [1]  Movie Management                   |\n"
              << "        |       Add / View / Update / Delete       |\n\n";
-        cout << "        |  [2]  Sales Analysis                     |\n"
-             << "        |       Revenue / Tickets Sold / Top Movies|\n\n";
-        cout << "        |  [3]  Booking And Seat Statistics        |\n"
-             << "        |       Bookings / Occupied / Available    |\n\n";
-        cout << "        |  [4]  Dynamic Ticket Pricing             |\n"
-             << "        |       Set / Update Ticket Prices         |\n\n";
-        cout << "        |  [5]  Exit                               |\n"
+        cout << "        |  [2]  Check Total Revenue                |\n";
+        cout << "        |  [3]  Dynamic Ticket Pricing             |\n"
+             << "        |       Update Ticket Prices               |\n\n";
+        cout << "        |  [4]  Exit                               |\n"
              << "        |       Return To Main Menu                |\n";
         cout << "        +------------------------------------------+\n";
         cout << "\n\n"
@@ -1510,7 +2275,17 @@ void adminDashboard()
             a.movieOperatons();
             break;
 
-        case 5:
+        case 2:
+            system("clear");
+            a.checkTotalRevenue();
+            break;
+
+        case 3:
+            system("clear");
+            a.dynamicTicketPricing();
+            break;
+
+        case 4:
             system("clear");
             cout << leftSide << " Returning To Main Menu "
                  << RightSide << "\n";
@@ -1522,7 +2297,7 @@ void adminDashboard()
                  << RightSide << "\n";
             break;
         }
-    } while (choice != 5);
+    } while (choice != 4);
     Enter_To_Continue();
 }
 
@@ -1599,7 +2374,6 @@ void loadMovieSeats()
     m = 0;
     while (getline(iFile, line))
     {
-        day1[j].showTrack = stoi(line.substr(8));
         for (int i = 0; i <= 9; i++)
         {
             getline(iFile, line);
@@ -1620,17 +2394,87 @@ void loadMovieSeats()
     k = 0;
     while (getline(iFile1, line))
     {
-        day2[k].showTrack = stoi(line.substr(8));
         for (int i = 0; i < 10; i++)
         {
             getline(iFile1, line);
             day2[k].seats[n++] = line;
         }
         getline(iFile1, line);
-        day2[j].availableTickets = stoi(line.substr(26));
+        day2[k].availableTickets = stoi(line.substr(26));
         getline(iFile1, line);
         k++;
         n = 0;
+    }
+    iFile1.close();
+}
+
+void loadBookedTickets()
+{
+    long long int mobileNo;
+    string line;
+    ifstream iFile, iFile1;
+    iFile.open("Day1_Booked_Tickets.txt");
+    while (getline(iFile, line))
+    {
+        getline(iFile, line);
+        mobileNo = stoll(line.substr(15));
+        for (int i = 0; i < l; i++)
+        {
+            if (c1[i].mobileNo == mobileNo)
+            {
+                getline(iFile, line);
+                c1[i].movieSelected = line.substr(16);
+
+                getline(iFile, line);
+                c1[i].screenNo = stoi(line.substr(12));
+
+                getline(iFile, line);
+                getline(iFile, line);
+
+                getline(iFile, line);
+                c1[i].showTime = line.substr(13);
+
+                getline(iFile, line);
+                c1[i].showDuration = stoi(line.substr(17));
+
+                getline(iFile, line);
+                c1[i].bookedSeats[s++] = line.substr(16);
+
+                getline(iFile, line);
+            }
+        }
+    }
+    iFile.close();
+    iFile1.open("Day2_Booked_Tickets.txt");
+    while (getline(iFile1, line))
+    {
+        getline(iFile1, line);
+        mobileNo = stoll(line.substr(15));
+        for (int i = 0; i < l; i++)
+        {
+            if (c1[i].mobileNo == mobileNo)
+            {
+                getline(iFile1, line);
+                c1[i].movieSelected = line.substr(16);
+
+                getline(iFile1, line);
+                c1[i].screenNo = stoi(line.substr(12));
+
+                getline(iFile1, line);
+                getline(iFile1, line);
+
+                getline(iFile1, line);
+                c1[i].showTime = line.substr(13);
+
+                getline(iFile1, line);
+                c1[i].showDuration = stoi(line.substr(17));
+
+                getline(iFile1, line);
+                c1[i].bookedSeats[s++] = line.substr(16);
+
+                getline(iFile1, line);
+            }
+        }
     }
     iFile1.close();
 }
